@@ -79,27 +79,29 @@ function createRelicGroupHTML(relic) {
     $('#data-container').append(groupContainer);
 }
 
-async function fetchRewardData(itemName) {
+function fetchRewardData(itemName) {
     const formattedName = itemName.toLowerCase().replaceAll(' ', '_');
-    const apiUrl = `https://api.warframe.market/v1/items/${formattedName}/statistics`;
+    const apiUrl = `https://cors-proxy.fringe.zone/api.warframe.market/v1/items/${formattedName}/statistics`;
 
     if(itemName.includes("Forma")) {
         return 1;
     }
 
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            console.error(`Failed to fetch data for ${itemName}`);
+    return $.ajax({
+        url: apiUrl,
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(data) {
+            const payload = data["payload"]["statistics_closed"]["48hours"];
+            return payload[payload.length - 1]["avg_price"];
+        },
+        error: function(xhr, status, error) {
+            console.error(`Error fetching data for ${itemName}:`, error);
             return 1;
         }
-        const data = await response.json();
-        const payload = data["payload"]["statistics_closed"]["48hours"];
-        return payload[payload.length - 1]["avg_price"];
-    } catch (error) {
-        console.error(`Error fetching data for ${itemName}:`, error);
-        return 1;
-    }
+    });
 }
 
 async function setRewards(rewardContainer, rewards) {
