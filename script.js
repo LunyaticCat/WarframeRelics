@@ -45,7 +45,7 @@ function initializeRelicData(relicData, priceData) {
         for (const reward of relic.rewards) {
             let price = priceData.find(a => a["i18n"]["en"].name === reward["itemName"])
             if (price !== undefined) {
-                reward["price"] = price["median"];
+                reward["price"] = price["wa_price"];
             }
             else {
                 reward["price"] = 0;
