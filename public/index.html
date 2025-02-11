@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Warframe Market Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            padding: 8px;
+            flex-grow: 1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .stats-card {
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            display: none;
+        }
+        .loading {
+            color: #666;
+            padding: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Warframe Market Viewer</h1>
+    
+    <div class="search-container">
+        <input type="text" id="itemInput" placeholder="Exemple: ivara_prime_systems">
+        <button onclick="searchItem()">Rechercher</button>
+    </div>
+
+    <div class="loading">Chargement...</div>
+    <div class="error"></div>
+    
+    <div class="stats-card" id="statsCard" style="display:none">
+        <h2>Résultats</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function searchItem() {
+            const itemName = document.getElementById('itemInput').value.trim();
+            if (!itemName) return;
+
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.error').style.display = 'none';
+            document.getElementById('statsCard').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/items/${itemName}/statistics`);
+                if (!response.ok) throw new Error('Item non trouvé');
+                
+                const data = await response.json();
+                const stats = data.payload.statistics_closed['48hours'];
+                
+                if (!stats || stats.length === 0) {
+                    throw new Error('Pas de données disponibles');
+                }
+
+                const latest = stats[stats.length - 1];
+                
+                const resultsHtml = `
+                    <p>Prix moyen: ${latest.avg_price.toFixed(2)} platinum</p>
+                    <p>Prix minimum: ${latest.min_price.toFixed(2)} platinum</p>
+                    <p>Prix maximum: ${latest.max_price.toFixed(2)} platinum</p>
+                    <p>Volume: ${latest.volume} échanges</p>
+                    <p>Date: ${new Date(latest.datetime).toLocaleString()}</p>
+                `;
+                
+                document.getElementById('results').innerHTML = resultsHtml;
+                document.getElementById('statsCard').style.display = 'block';
+            } catch (error) {
+                document.querySelector('.error').textContent = `Erreur: ${error.message}`;
+                document.querySelector('.error').style.display = 'block';
+            } finally {
+                document.querySelector('.loading').style.display = 'none';
+            }
+        }
+
+        // Permettre la recherche avec Enter
+        document.getElementById('itemInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchItem();
+            }
+        });
+    </script>
+</body>
+</html>
