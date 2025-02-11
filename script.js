@@ -79,37 +79,55 @@ function createRelicGroupHTML(relic) {
     $('#data-container').append(groupContainer);
 }
 
-function setRewards(rewardContainer, rewards) {
+async function fetchRewardData(itemName) {
+    const formattedName = itemName.toLowerCase().replaceAll(' ', '_');
+    const apiUrl = `https://api.warframe.market/v1/items/${formattedName}/statistics`;
+
+    if(itemName.includes("Forma")) {
+        return 1;
+    }
+
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            console.error(`Failed to fetch data for ${itemName}`);
+            return 1;
+        }
+        const data = await response.json();
+        const payload = data["payload"]["statistics_closed"]["48hours"];
+        return payload[payload.length - 1]["avg_price"];
+    } catch (error) {
+        console.error(`Error fetching data for ${itemName}:`, error);
+        return 1;
+    }
+}
+
+async function setRewards(rewardContainer, rewards) {
     rewardContainer.empty();
 
     const platContainer = $('<div>').addClass('plat-container');
-    let averagePrice = 0;
+    let averagePrice = 1;
     const platValue = $('<p>');
     platContainer.append(platValue);
     platContainer.append($('<img>').attr({
-        src: "https://wiki.warframe.com/images/thumb/PlatinumLarge.png/300px-PlatinumLarge.png",  // Set the image source
+        src: "https://wiki.warframe.com/images/thumb/PlatinumLarge.png/300px-PlatinumLarge.png",
         alt: "plat.png",
         class: 'plat-icon'
     }).addClass('plat-icon'));
     rewardContainer.append(platContainer);
 
     for (const reward of rewards) {
-        let formatedName = reward["itemName"].toLowerCase().replaceAll(' ', '_');
-        /*$.ajax({
-
-            url: `https://api.warframe.market/v1/items/${formatedName}/statistics`,
-            type: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                let payload = data["payload"]["statistics_closed"]["48hours"];
-                let price = payload[payload.length-1]["avg_price"]
-                averagePrice = averagePrice + price*reward["chance"]
-            },
-            error: function() { alert('Failed!'); },
-        });*/
-        //TODO call wf market for everything without ddosing them
         rewardContainer.append($('<p>').text(`${reward["chance"]}% ${reward["itemName"]}`));
+
+        const price = await fetchRewardData(reward["itemName"]);
+        if (price !== null) {
+            averagePrice *= price * reward["chance"];
+        }
+
+        // Delay between requests to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Adjust delay as needed
     }
+
     platValue.text(averagePrice);
 }
 
