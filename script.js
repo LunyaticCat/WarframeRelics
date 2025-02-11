@@ -119,13 +119,14 @@ async function setRewards(rewardContainer, rewards) {
     for (const reward of rewards) {
         rewardContainer.append($('<p>').text(`${reward["chance"]}% ${reward["itemName"]}`));
 
-        const price = await fetchRewardData(reward["itemName"]);
+        //const price = await fetchRewardData(reward["itemName"]);
+        const price = 0;
         if (price !== null) {
             averagePrice *= price * reward["chance"];
         }
 
         // Delay between requests to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Adjust delay as needed
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Adjust delay as needed
     }
 
     platValue.text(averagePrice);
