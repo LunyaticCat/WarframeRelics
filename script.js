@@ -1,43 +1,86 @@
-$(document).ready(function() {
+$(document).ready(function () {
     fetch('https://drops.warframestat.us/data/relics.json')
         .then(response => response.json())
         .then(data => {
-            const relics = data["relics"];
-            const groupedRelics = [];
-            relics.forEach(relic => {
-                // Find if there's already an existing group for this tier and relicName
-                let existingGroup = groupedRelics.find(group =>
-                    group.tier === relic.tier && group.relicName === relic.relicName);
-
-                // If a group exists, add this relic's drop to the existing drops array
-                if (existingGroup) {
-                    existingGroup.drops.push({
-                        states: [relic.state],
-                        rewards: [relic.rewards]
-                    });
-                } else {
-                    // If no group exists, create a new group with the drop
-                    groupedRelics.push({
-                        tier: relic.tier,
-                        relicName: relic.relicName,
-                        drops: [{
-                            states: [relic.state],
-                            rewards: [relic.rewards]
-                        }]
-                    });
-                }
-            });
-
-            console.log(groupedRelics);
-            groupedRelics.forEach(group => {
-                createRelicGroupHTML(group);
-            });
-
+            fetchItemInfo(data);
         })
         .catch(error => {
             console.error('Error:', error);
         });
 });
+
+function fetchItemInfo(relicData) {
+    fetch('https://cors-proxy.fringe.zone/api.warframe.market/v2/items')
+        .then(response => response.json())
+        .then(data => {
+            fetchItemPrice(data, relicData);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+function fetchItemPrice(itemsInfo, relicData) {
+    fetch('https://cors-proxy.fringe.zone/api.warframe.market/v1/tools/ducats')
+        .then(response => response.json())
+        .then(itemPrice => {
+            itemsInfo = itemsInfo["data"];
+            itemPrice = itemPrice["payload"]["previous_day"];
+
+            let mergedList = _.map(itemPrice, function(item){
+                return _.extend(item, _.findWhere(itemsInfo, { id: item.item }));});
+
+            initializeRelicData(relicData, mergedList);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+function initializeRelicData(relicData, priceData) {
+    const relics = relicData["relics"];
+    const groupedRelics = [];
+    relics.forEach(relic => {
+
+        for (const reward of relic.rewards) {
+            let price = priceData.find(a => a["i18n"]["en"].name === reward["itemName"])
+            if (price !== undefined) {
+                reward["price"] = price["median"];
+            }
+            else {
+                reward["price"] = 0;
+            }
+        }
+
+        // Find if there's already an existing group for this tier and relicName
+        let existingGroup = groupedRelics.find(group =>
+            group.tier === relic.tier && group.relicName === relic.relicName);
+
+        // If a group exists, add this relic's drop to the existing drops array
+        if (existingGroup) {
+            existingGroup.drops.push({
+                states: [relic.state],
+                rewards: [relic.rewards]
+            });
+        } else {
+            // If no group exists, create a new group with the drop
+            groupedRelics.push({
+                tier: relic.tier,
+                relicName: relic.relicName,
+                drops: [{
+                    states: [relic.state],
+                    rewards: [relic.rewards]
+                }]
+            });
+        }
+    });
+
+    console.log(groupedRelics);
+    groupedRelics.forEach(group => {
+        createRelicGroupHTML(group);
+    });
+
+}
 
 
 function createRelicGroupHTML(relic) {
@@ -52,13 +95,12 @@ function createRelicGroupHTML(relic) {
     }).addClass('relic-icon');
     const title = $('<h3>').text(`${relic.tier} - ${relic.relicName}`).addClass('group-header');
 
-    header.on('click', function() {
+    header.on('click', function () {
         let refinementValue = groupContainer.data('refinement');
 
-        if(refinementValue < 3) {
+        if (refinementValue < 3) {
             refinementValue++;
-        }
-        else {
+        } else {
             refinementValue = 0;
         }
 
@@ -79,36 +121,11 @@ function createRelicGroupHTML(relic) {
     $('#data-container').append(groupContainer);
 }
 
-function fetchRewardData(itemName) {
-    const formattedName = itemName.toLowerCase().replaceAll(' ', '_');
-    const apiUrl = `https://cors-proxy.fringe.zone/api.warframe.market/v1/items/${formattedName}/statistics`;
-
-    if(itemName.includes("Forma")) {
-        return 1;
-    }
-
-    return $.ajax({
-        url: apiUrl,
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        success: function(data) {
-            const payload = data["payload"]["statistics_closed"]["48hours"];
-            return payload[payload.length - 1]["avg_price"];
-        },
-        error: function(xhr, status, error) {
-            console.error(`Error fetching data for ${itemName}:`, error);
-            return 1;
-        }
-    });
-}
-
 async function setRewards(rewardContainer, rewards) {
     rewardContainer.empty();
 
     const platContainer = $('<div>').addClass('plat-container');
-    let averagePrice = 1;
+    let averagePrice = 0;
     const platValue = $('<p>');
     platContainer.append(platValue);
     platContainer.append($('<img>').attr({
@@ -121,35 +138,33 @@ async function setRewards(rewardContainer, rewards) {
     for (const reward of rewards) {
         rewardContainer.append($('<p>').text(`${reward["chance"]}% ${reward["itemName"]}`));
 
-        //const price = await fetchRewardData(reward["itemName"]);
-        const price = 0;
-        if (price !== null) {
-            averagePrice *= price * reward["chance"];
-        }
-
-        // Delay between requests to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Adjust delay as needed
+        const price = reward.price;
+        averagePrice += price * reward["chance"] / 100;
     }
 
-    platValue.text(averagePrice);
+    platValue.text(Math.round(averagePrice * 100) / 100);
 }
 
-function getRelicData(relic, refinementIndex=0) {
+function getRelicData(relic, refinementIndex = 0) {
     let resultData = {};
 
     let refinement;
     switch (refinementIndex) {
-        case 0: refinement = "Intact";
-        break;
+        case 0:
+            refinement = "Intact";
+            break;
 
-        case 1: refinement = "Exceptional";
-        break;
+        case 1:
+            refinement = "Exceptional";
+            break;
 
-        case 2: refinement = "Flawless";
-        break;
+        case 2:
+            refinement = "Flawless";
+            break;
 
-        case 3: refinement = "Radiant";
-        break;
+        case 3:
+            refinement = "Radiant";
+            break;
     }
 
     resultData.image = `https://wiki.warframe.com/images/thumb/${relic.tier}Relic${refinement}.png/300px-${relic.tier}Relic${refinement}.png`;
