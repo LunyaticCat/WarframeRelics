@@ -1,44 +1,66 @@
+let relicData;
+let itemsInfo;
+let priceData;
+
 $(document).ready(function () {
     fetch('https://drops.warframestat.us/data/relics.json')
         .then(response => response.json())
         .then(data => {
-            fetchItemInfo(data);
+            relicData = data;
+            fetchItemInfo();
         })
         .catch(error => {
             console.error('Error:', error);
         });
+
+    document.getElementById("filter-field").addEventListener("input", function (e) {
+        if(e.target.value === "") {
+            initializeRelicData();
+            return;
+        }
+        let filteredData = {
+            relics: relicData["relics"].filter(relic =>
+                relic.rewards.some(reward =>
+                    reward["itemName"].toLowerCase().startsWith(e.target.value.toLowerCase())
+                )
+            )
+        };
+        initializeRelicData(filteredData);
+    });
 });
 
-function fetchItemInfo(relicData) {
+function fetchItemInfo() {
     fetch('https://cors-proxy.fringe.zone/api.warframe.market/v2/items')
         .then(response => response.json())
         .then(data => {
-            fetchItemPrice(data, relicData);
+            itemsInfo = data;
+            fetchItemPrice();
         })
         .catch(error => {
             console.error('Error:', error);
         });
 }
 
-function fetchItemPrice(itemsInfo, relicData) {
+function fetchItemPrice() {
     fetch('https://cors-proxy.fringe.zone/api.warframe.market/v1/tools/ducats')
         .then(response => response.json())
         .then(itemPrice => {
             itemsInfo = itemsInfo["data"];
             itemPrice = itemPrice["payload"]["previous_day"];
 
-            let mergedList = _.map(itemPrice, function(item){
+            priceData = _.map(itemPrice, function(item){
                 return _.extend(item, _.findWhere(itemsInfo, { id: item.item }));});
 
-            initializeRelicData(relicData, mergedList);
+            initializeRelicData();
         })
         .catch(error => {
             console.error('Error:', error);
         });
 }
 
-function initializeRelicData(relicData, priceData) {
-    const relics = relicData["relics"];
+function initializeRelicData(data=relicData) {
+    $('#data-container').empty();
+    const relics = data["relics"];
     const groupedRelics = [];
     relics.forEach(relic => {
 
