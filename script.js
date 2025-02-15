@@ -113,7 +113,8 @@ function createRelicGroupHTML(relic) {
     const header = $('<img>').attr({
         src: relicData.image,  // Set the image source
         alt: "relic.png",
-        class: 'relic-icon'
+        class: 'relic-icon',
+        draggable : 'false'
     }).addClass('relic-icon');
     const title = $('<h3>').text(`${relic.tier} - ${relic.relicName}`).addClass('group-header');
 
