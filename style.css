@@ -14,7 +14,42 @@
     padding: 2px 2px;
 }
 
+#tooltip-div {
+    right: 0;
+    position: fixed;
+    padding: 10px 55px 0 0;
+}
+
+#tooltip {
+    width: 50px;
+}
+
+#tooltip-text {
+    content: " ";
+    word-wrap: break-word;
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: relative;
+    z-index: 1;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+#tooltip-div:hover #tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
 #filter-field {
+    top: 18px;
     position: fixed;
     width: 150px;
     box-sizing: border-box;
