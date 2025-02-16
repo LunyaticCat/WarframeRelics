@@ -5,6 +5,7 @@
     width: 80%;
     margin-left: auto;
     margin-right: auto;
+    padding-top: 55px;
 }
 
 .group-container {
@@ -20,7 +21,7 @@
     padding: 10px 55px 0 0;
 }
 
-#tooltip {
+#tooltip-img {
     width: 50px;
 }
 
@@ -43,7 +44,7 @@
     transition: opacity 1s;
 }
 
-#tooltip-div:hover #tooltip-text {
+#tooltip-img:hover ~ #tooltip-text {
     visibility: visible;
     opacity: 1;
 }
@@ -51,7 +52,7 @@
 #filter-field {
     top: 18px;
     position: fixed;
-    width: 150px;
+    width: 120px;
     box-sizing: border-box;
     border: 2px solid #ccc;
     border-radius: 4px;
@@ -103,10 +104,20 @@
     padding-left: 2px;
 }
 
+header {
+    display: flex;
+}
+
 body {
     background: url(./assets/background.jpg) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
+}
+
+@media(max-width: 500px) {
+    #filter-field[type=text]:focus {
+        width: 60%;
+    }
 }
