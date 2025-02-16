@@ -14,6 +14,25 @@
     padding: 2px 2px;
 }
 
+#filter-field {
+    position: fixed;
+    width: 150px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: white;
+    background-image: url('./assets/searchicon.png');
+    background-position: 10px 10px;
+    background-repeat: no-repeat;
+    padding: 12px 20px 12px 40px;
+    transition: width 0.4s ease-in-out;
+}
+
+#filter-field[type=text]:focus {
+    width: 350px;
+}
+
 .group-header {
     display: flex;
     align-self: center;
@@ -50,7 +69,7 @@
 }
 
 body {
-    background: url(./background.jpg) no-repeat center center fixed;
+    background: url(./assets/background.jpg) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
