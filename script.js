@@ -116,7 +116,14 @@ function createRelicGroupHTML(relic) {
         class: 'relic-icon',
         draggable : 'false'
     }).addClass('relic-icon');
-    const title = $('<h3>').text(`${relic.tier} - ${relic.relicName}`).addClass('group-header');
+    const title = $('<h3>')
+        .addClass('group-header')
+        .append(
+            $('<a>')
+                .attr('href', `https://wiki.warframe.com/w/${relic.tier}_${relic.relicName}`)
+                .attr("target", "_blank")
+                .text(`${relic.tier} - ${relic.relicName}`)
+        );
 
     header.on('click', function () {
         let refinementValue = groupContainer.data('refinement');
