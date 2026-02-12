@@ -3,7 +3,7 @@ let itemsInfo;
 let priceData;
 
 $(document).ready(function () {
-    fetch('https://api.allorigins.win/raw?url=https://drops.warframestat.us/data/relics.json')
+    fetch('relics.json')
         .then(response => response.json())
         .then(data => {
             relicData = data;
@@ -42,7 +42,7 @@ function fetchItemInfo() {
 }
 
 function fetchItemPrice() {
-    fetch('https://api.allorigins.win/raw?url=https://api.warframe.market/v1/tools/ducats')
+    fetch('./ducats.json')
         .then(response => response.json())
         .then(itemPrice => {
             itemsInfo = itemsInfo["data"];
