@@ -30,7 +30,7 @@ $(document).ready(function () {
 });
 
 function fetchItemInfo() {
-    fetch('https://api.warframe.market/v2/items')
+    fetch('./items.json')
         .then(response => response.json())
         .then(data => {
             itemsInfo = data;
