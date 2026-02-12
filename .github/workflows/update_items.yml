@@ -14,12 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Warframe Market Items
+      - name: Download Data Files
         run: |
           curl -H "Language: en" -H "User-Agent: Mozilla/5.0" "https://api.warframe.market/v2/items" -o items.json
+          curl -H "User-Agent: Mozilla/5.0" "https://drops.warframestat.us/data/relics.json" -o relics.json
+          curl -H "Language: en" -H "User-Agent: Mozilla/5.0" "https://api.warframe.market/v1/tools/ducats" -o ducats.json
 
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto-update Warframe items.json"
-          file_pattern: "items.json"
+          commit_message: "Auto-update Warframe data files"
+          file_pattern: "items.json relics.json ducats.json"
