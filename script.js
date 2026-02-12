@@ -30,7 +30,7 @@ $(document).ready(function () {
 });
 
 function fetchItemInfo() {
-    fetch('https://corsproxy.io/?url=https://api.warframe.market/v2/items')
+    fetch('https://crossorigin.me/https://api.warframe.market/v2/items')
         .then(response => response.json())
         .then(data => {
             itemsInfo = data;
@@ -42,7 +42,7 @@ function fetchItemInfo() {
 }
 
 function fetchItemPrice() {
-    fetch('https://corsproxy.io/?url=https://api.warframe.market/v1/tools/ducats')
+    fetch('https://crossorigin.me/https://api.warframe.market/v1/tools/ducats')
         .then(response => response.json())
         .then(itemPrice => {
             itemsInfo = itemsInfo["data"];
