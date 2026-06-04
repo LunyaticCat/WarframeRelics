@@ -111,7 +111,7 @@ function createRelicGroupHTML(relic) {
     const groupContainer = $('<div>').addClass('group-container').data('refinement', 0);
     const rewardContainer = $('<div>').addClass('reward-container');
     const header = $('<img>').attr({
-        src: relicData.image,  // Set the image source
+        src: relicData.image,
         alt: "relic.png",
         class: 'relic-icon',
         draggable : 'false'
@@ -195,6 +195,10 @@ function getRelicData(relic, refinementIndex = 0) {
         case 3:
             refinement = "Radiant";
             break;
+    }
+
+    if (relic.tier === "Vanguard") {
+        relic.tier = "Axi"
     }
 
     resultData.image = `https://wiki.warframe.com/images/thumb/${relic.tier}Relic${refinement}.png/300px-${relic.tier}Relic${refinement}.png`;
