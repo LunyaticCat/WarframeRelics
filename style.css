@@ -82,6 +82,8 @@ a {
 .relic-icon {
     display: flex;
     width: 120px;
+    -webkit-user-select:none;
+    user-select:none;
 }
 
 .reward-container {
